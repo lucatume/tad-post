@@ -57,6 +57,7 @@ class tad_Post {
 	 * @var WP_Post
 	 */
 	protected $original_post;
+
 	/**
 	 * @var bool
 	 */
@@ -149,10 +150,15 @@ class tad_Post {
 			return $this->post->$key;
 		}
 		if ( array_key_exists( $key, $this->post_meta ) ) {
-			return $this->get_meta( $key, $this->get_meta_filter_from_key( $key ) );
+			$single = in_array( $key, $this->get_single_meta_keys() );
+
+			return $this->get_meta( $key, $single );
 		}
 		if ( array_key_exists( $key, $this->terms ) ) {
-			return $this->terms[ $key ];
+			$single = in_array( $key, $this->get_single_term_keys() );
+			$terms  = $this->get_terms( $key, array() );
+
+			return $single ? reset( $terms ) : $terms;
 		}
 
 		return null;
@@ -163,12 +169,11 @@ class tad_Post {
 	 *
 	 * @param            $terms
 	 * @param            $taxonomy
-	 * @param bool|false $append
 	 */
-	public function set_terms( $terms, $taxonomy, $append = false ) {
+	public function set_terms( $terms, $taxonomy ) {
 		$this->terms_updated = true;
 
-		if ( $append ) {
+		if ( ! in_array( $taxonomy, $this->get_single_term_keys() ) ) {
 			$this->fetch_terms( $taxonomy );
 			$this->terms = array_unique( array_merge( $this->terms[ $taxonomy ], $terms ) );
 
@@ -200,12 +205,11 @@ class tad_Post {
 	 *
 	 * @param           $key
 	 * @param           $value
-	 * @param bool|true $append
 	 */
-	public function set_meta( $key, $value, $append = true ) {
+	public function set_meta( $key, $value ) {
 		$this->meta_updated = true;
 
-		if ( ! $append ) {
+		if ( ! in_array( $key, $this->get_single_meta_keys() ) ) {
 			$this->post_meta[ $key ] = array( $value );
 		} else {
 			$this->fetch_meta();
@@ -271,14 +275,23 @@ class tad_Post {
 		if ( $this->meta_updated ) {
 			if ( ! empty( $this->post_meta ) ) {
 				foreach ( $this->post_meta as $key => $value ) {
-					update_post_meta( $this->id, $key, $value );
+					if ( in_array( $key, $this->get_single_meta_keys() ) ) {
+						update_post_meta( $this->id, $key, $value );
+					} else {
+						foreach ( $value as $val ) {
+							add_post_meta( $this->id, $key, $val, false );
+						}
+					}
 				}
 			}
 			$this->meta_updated = false;
 		}
 		if ( $this->terms_updated ) {
+
 			if ( ! empty( $this->terms ) ) {
+
 				foreach ( $this->terms as $taxonomy => $terms ) {
+
 					wp_set_object_terms( $this->id, $terms, $taxonomy, false );
 				}
 			}
@@ -314,5 +327,19 @@ class tad_Post {
 	 */
 	public function rollback_terms() {
 		$this->fetch_terms( true );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function get_single_meta_keys() {
+		return array();
+	}
+
+	/**
+	 * @return array
+	 */
+	public function get_single_term_keys() {
+		return array();
 	}
 }
