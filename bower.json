@@ -1,0 +1,15 @@
+{
+  "name": "tad_post",
+  "version": "1.0.0",
+  "authors": [
+    "Luca Tumedei <luca@theaveragedev.com>"
+  ],
+  "description": "WordPress post object utility classes.",
+  "main": "tad_post.php",
+  "keywords": [
+    "wordpress",
+    "plugin"
+  ],
+  "license": "GPL 2.0",
+  "homepage": "http://theaveragedev.com"
+}
