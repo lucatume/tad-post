@@ -79,7 +79,7 @@ class tad_Post {
 
 	public function __destruct() {
 		if ( $this->new ) {
-			wp_delete_post( $this->id );
+			wp_delete_post( $this->id, true );
 		}
 	}
 
@@ -93,11 +93,30 @@ class tad_Post {
 	 *
 	 * @return mixed|null
 	 */
-	public function get( $key, $default ) {
-		$value = $this->__get( $key );
+	public function get( $key, $default = null ) {
+		$this->fetch_meta();
+		$this->fetch_terms();
 
-		return is_null( $value ) ? $default : $value;
+		if ( array_key_exists( $key, $this->postarr ) || $alias = array_key_exists( $key, $this->get_column_aliases() ) ) {
+			if ( ! empty( $alias ) ) {
+				$key = $this->get_column_from_alias( $key );
+			}
 
+			return $this->post->$key;
+		}
+		if ( array_key_exists( $key, $this->post_meta ) ) {
+			$single = in_array( $key, $this->get_single_meta_keys() );
+
+			return $this->get_meta( $key, $single, $default );
+		}
+		if ( array_key_exists( $key, $this->terms ) ) {
+			$single = in_array( $key, $this->get_single_term_keys() );
+			$terms  = $this->get_terms( $key, $default );
+
+			return $single ? reset( $terms ) : $terms;
+		}
+
+		return $default;
 	}
 
 	/**
@@ -123,45 +142,33 @@ class tad_Post {
 		$this->fetch_meta();
 		$this->fetch_terms();
 
-		if ( array_key_exists( $key, $this->postarr ) ) {
+		if ( array_key_exists( $key, $this->postarr ) || $alias = array_key_exists( $key, $this->get_column_aliases() ) ) {
+			if ( ! empty( $alias ) ) {
+				$key = $this->get_column_from_alias( $key );
+			}
+			if ( in_array( $key, $this->get_write_protected_data_fields() ) ) {
+				return;
+			}
 			$this->post->$key   = $value;
 			$this->post_updated = true;
 		} else if ( array_key_exists( $key, $this->terms ) ) {
-			$this->terms[ $key ] = $value;
+			$this->set_terms( $value, $key );
 			$this->terms_updated = true;
 		} else {
-			$this->post_meta[ $key ] = $value;
-			$this->meta_updated      = true;
+			$this->set_meta( $key, $value );
+			$this->meta_updated = true;
 		}
 	}
 
 	/**
 	 * Explicit magic method implementation.
 	 *
-	 * @param $key
+	 * @param      $key
 	 *
 	 * @return mixed|null
 	 */
 	public function __get( $key ) {
-		$this->fetch_meta();
-		$this->fetch_terms();
-
-		if ( array_key_exists( $key, $this->postarr ) ) {
-			return $this->post->$key;
-		}
-		if ( array_key_exists( $key, $this->post_meta ) ) {
-			$single = in_array( $key, $this->get_single_meta_keys() );
-
-			return $this->get_meta( $key, $single );
-		}
-		if ( array_key_exists( $key, $this->terms ) ) {
-			$single = in_array( $key, $this->get_single_term_keys() );
-			$terms  = $this->get_terms( $key, array() );
-
-			return $single ? reset( $terms ) : $terms;
-		}
-
-		return null;
+		return $this->get( $key );
 	}
 
 	/**
@@ -172,15 +179,9 @@ class tad_Post {
 	 */
 	public function set_terms( $terms, $taxonomy ) {
 		$this->terms_updated = true;
-
-		if ( ! in_array( $taxonomy, $this->get_single_term_keys() ) ) {
-			$this->fetch_terms( $taxonomy );
-			$this->terms = array_unique( array_merge( $this->terms[ $taxonomy ], $terms ) );
-
-			return;
-		}
+		$terms               = is_array( $terms ) ? $terms : array( $terms );
+		$this->fetch_terms();
 		$this->terms[ $taxonomy ] = $terms;
-
 	}
 
 	/**
@@ -194,7 +195,7 @@ class tad_Post {
 	public function get_terms( $taxonomy, $default = array() ) {
 		$this->fetch_terms( $taxonomy );
 		if ( array_key_exists( $taxonomy, $this->terms ) ) {
-			return $this->terms[ $taxonomy ];
+			return empty( $this->terms[ $taxonomy ] ) ? $default : $this->terms[ $taxonomy ];
 		}
 
 		return $default;
@@ -203,37 +204,34 @@ class tad_Post {
 	/**
 	 * Append or set the meta for the post.
 	 *
-	 * @param           $key
-	 * @param           $value
+	 * @param string $key
+	 * @param array  $values
+	 *
 	 */
-	public function set_meta( $key, $value ) {
-		$this->meta_updated = true;
-
-		if ( ! in_array( $key, $this->get_single_meta_keys() ) ) {
-			$this->post_meta[ $key ] = array( $value );
-		} else {
-			$this->fetch_meta();
-			$this->post_meta[ $key ] = array_merge( $this->post_meta[ $key ], $value );
-		}
-
+	public function set_meta( $key, array $values ) {
+		$this->meta_updated      = true;
+		$values                  = is_array( $values ) ? $values : $values;
+		$this->post_meta[ $key ] = $values;
 	}
 
 	/**
 	 * Get the meta for the post
 	 *
-	 * @param $key
-	 * @param $single
+	 * @param            $key
+	 * @param            $single
+	 *
+	 * @param array      $default
 	 *
 	 * @return array|mixed|string
 	 */
-	public function get_meta( $key, $single ) {
+	public function get_meta( $key, $single, $default = array() ) {
 		$this->fetch_meta();
 
 		if ( array_key_exists( $key, $this->post_meta ) && ! empty( $this->post_meta[ $key ] ) ) {
 			return $single ? reset( $this->post_meta[ $key ] ) : $this->post_meta[ $key ];
 		}
 
-		return $single ? '' : array();
+		return $default;
 	}
 
 	/**
@@ -243,9 +241,9 @@ class tad_Post {
 	 */
 	public function fetch_terms( $force = false ) {
 		if ( ! $this->did_fetch_terms || $force ) {
-			$taxonomies = get_object_taxonomies( $this->id, 'names' );
+			$taxonomies = get_object_taxonomies( $this->post, 'names' );
 			foreach ( $taxonomies as $taxonomy ) {
-				$this->terms[ $taxonomy ] = wp_get_object_terms( $this->id, $taxonomy );
+				$this->terms[ $taxonomy ] = wp_get_object_terms( $this->id, $taxonomy, array( 'fields' => 'names' ) );
 			}
 			$this->did_fetch_terms = true;
 		}
@@ -271,6 +269,7 @@ class tad_Post {
 		if ( $this->post_updated ) {
 			wp_update_post( $this->post );
 			$this->post_updated = false;
+			clean_post_cache( $this->id );
 		}
 		if ( $this->meta_updated ) {
 			if ( ! empty( $this->post_meta ) ) {
@@ -278,6 +277,7 @@ class tad_Post {
 					if ( in_array( $key, $this->get_single_meta_keys() ) ) {
 						update_post_meta( $this->id, $key, $value );
 					} else {
+						delete_post_meta( $this->id, $key );
 						foreach ( $value as $val ) {
 							add_post_meta( $this->id, $key, $val, false );
 						}
@@ -303,9 +303,9 @@ class tad_Post {
 	 * Rolls back the post data, meta and terms to the original state.
 	 */
 	public function rollback() {
-		$this->rollback_post_data();
-		$this->rollback_post_meta();
-		$this->rollback_post_terms();
+		$this->rollback_data();
+		$this->rollback_meta();
+		$this->rollback_terms();
 	}
 
 	/**
@@ -341,5 +341,30 @@ class tad_Post {
 	 */
 	public function get_single_term_keys() {
 		return array();
+	}
+
+	/**
+	 * @return array
+	 */
+	public function get_column_aliases() {
+		return array();
+	}
+
+	/**
+	 * @param $alias
+	 *
+	 * @return mixed|null
+	 */
+	protected function get_column_from_alias( $alias ) {
+		$aliases = $this->get_column_aliases();
+
+		return $aliases[ $alias ];
+	}
+
+	/**
+	 * @return array
+	 */
+	protected function get_write_protected_data_fields() {
+		return array( 'ID', 'comment_count', 'guid', 'post_modified', 'post_modified_gmt' );
 	}
 }

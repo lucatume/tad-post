@@ -15,33 +15,58 @@ The class is in its early implementation but works on the simple concept:
 
 This allows for transparent access to a post data, meta or terms with method calls like
 
-	$post = new tad_Post(23);
+	$car = new Acme\Car(23);
 
 	// get the post title
-	$title = $post->post_title;
+	$name = $car->name;
 	
 	// get the post `color` meta
-	$color = $post->color;
+	$color = $car->color;
 	
-	// get the post `category` terms
-	$cats = $post->category;
+	// get the post `brand` taxonomy terms
+	$brand = $car->brand;
 	
 	// Backbone like accessors with defaulting
-	$title = $post->get('post_title', '');
-	$color = $post->get('color','#fff');
-	$cats = $post->get('category', array('uncategorized','worthy'));
+	$title = $car->get('name', '');
+	$color = $car->get('color','red');
+	$cats = $car->get('brand', 'GM');
 
 	// Property setters
-	$post->post_title = 'New title';	
-	$post->color = '#ggg';
-	$post->category = array('new', 'funk', 'punk');
+	$car->name = 'Fastr 99';	
+	$car->color = 'red';
+	$car->brand = 'GM';
 	
 	// Backbone like setters
-	$post->set('post_title', 'New title');
-	$post->set('color', '#ggg');
-	$post->set('category', array('new', 'funk', 'punk'));
+	$car->set('car_title', 'New title');
+	$car->set('color', 'red');
+	$car->set('category', 'GM');
+
+### Code cost
+The cost to have such a streamlined read and write access is the extension of the base class
+
+    class Acme\Car extends tad_Post{
+		
+		public function get_column_aliases(){
+			return array(
+				'name' => 'post_title',
+				'description' => 'post_content',
+				'pitch' => 'post_excerpt',
+				'availability' => 'post_status'
+			);
+		}	
+
+        public function get_single_meta_keys() {
+            return array('color');
+        }
+
+        public function get_single_term_keys() {
+            return array('brand');
+        }
+
+    }
 
 	
+### Cascading access
 **Beware**: read and write access happens in the post data, post terms and post meta cascading order. This means that a post that has the `category` taxonomy applied and a `category` meta key will return the `category` taxonomy terms when calling
 
 	$post->category;

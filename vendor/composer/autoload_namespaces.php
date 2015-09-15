@@ -8,5 +8,8 @@ $baseDir = dirname($vendorDir);
 return array(
     'xrstf\\Composer52' => array($vendorDir . '/xrstf/composer-php52/lib'),
     'tad_' => array($baseDir . '/src', $vendorDir . '/lucatume/args/src'),
+    'phpDocumentor' => array($vendorDir . '/phpdocumentor/reflection-docblock/src'),
+    'Prophecy\\' => array($vendorDir . '/phpspec/prophecy/src'),
+    'BaconStringUtils' => array($vendorDir . '/bacon/bacon-string-utils/src'),
     'Arg' => array($vendorDir . '/lucatume/args/src'),
 );

@@ -6,4 +6,26 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'tad\\wordpress\\maker\\' => array($vendorDir . '/lucatume/wp-browser/src'),
+    'tad\\wordpress\\loader\\' => array($vendorDir . '/lucatume/wp-browser/src'),
+    'Symfony\\Component\\Yaml\\' => array($vendorDir . '/symfony/yaml'),
+    'Symfony\\Component\\Finder\\' => array($vendorDir . '/symfony/finder'),
+    'Symfony\\Component\\EventDispatcher\\' => array($vendorDir . '/symfony/event-dispatcher'),
+    'Symfony\\Component\\DomCrawler\\' => array($vendorDir . '/symfony/dom-crawler'),
+    'Symfony\\Component\\CssSelector\\' => array($vendorDir . '/symfony/css-selector'),
+    'Symfony\\Component\\Console\\' => array($vendorDir . '/symfony/console'),
+    'Symfony\\Component\\BrowserKit\\' => array($vendorDir . '/symfony/browser-kit'),
+    'Psr\\Http\\Message\\' => array($vendorDir . '/psr/http-message/src'),
+    'GuzzleHttp\\Psr7\\' => array($vendorDir . '/guzzlehttp/psr7/src'),
+    'GuzzleHttp\\Promise\\' => array($vendorDir . '/guzzlehttp/promises/src'),
+    'GuzzleHttp\\' => array($vendorDir . '/guzzlehttp/guzzle/src'),
+    'Facebook\\WebDriver\\' => array($vendorDir . '/facebook/webdriver/lib'),
+    'Doctrine\\Instantiator\\' => array($vendorDir . '/doctrine/instantiator/src/Doctrine/Instantiator'),
+    'Codeception\\Module\\' => array($vendorDir . '/lucatume/wp-browser/src'),
+    'Codeception\\Lib\\Generator\\' => array($vendorDir . '/lucatume/wp-browser/src'),
+    'Codeception\\Lib\\Driver\\' => array($vendorDir . '/lucatume/wp-browser/src'),
+    'Codeception\\Extension\\' => array($vendorDir . '/codeception/codeception/ext'),
+    'Codeception\\Command\\' => array($vendorDir . '/lucatume/wp-browser/src'),
+    'Codeception\\' => array($vendorDir . '/codeception/codeception/src/Codeception'),
+    'Badcow\\LoremIpsum\\' => array($vendorDir . '/badcow/lorem-ipsum/lib'),
 );

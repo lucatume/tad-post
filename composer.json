@@ -25,7 +25,8 @@
   },
   "minimum-stability": "dev",
   "require-dev": {
-    "xrstf/composer-php52": "1.*"
+    "xrstf/composer-php52": "1.*",
+    "lucatume/wp-browser": "dev-master"
   },
   "scripts": {
     "command": [
