@@ -1,7 +1,7 @@
 <?php
 
 
-class tad_Post {
+class tad_Post implements tad_PostInterface {
 
 	/**
 	 * @var int

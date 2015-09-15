@@ -1,6 +1,6 @@
 <?php
 
-class tad_PostRepository extends tad_AbstractPostRepository {
+class tad_PostRepository extends tad_AbstractPostRepository implements tad_PostRepositoryInterface {
 
 	/**
 	 * @return string

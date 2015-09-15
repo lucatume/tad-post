@@ -16,7 +16,11 @@ abstract class tad_AbstractPostRepository {
 		Arg::_( $id, 'ID' )->is_numeric()->vel()->is_null();
 
 		if ( empty( $id ) ) {
-			$id = wp_insert_post( [ 'post_type' => tad_PostRepository::get_post_type() ], true );
+			$post_type = tad_PostRepository::get_post_type();
+			$id        = wp_insert_post( [ 'post_type'    => $post_type,
+			                               'post_title'   => "New $post_type title",
+			                               'post_content' => "New $post_type content"
+			], true );
 			if ( is_wp_error( $id ) ) {
 				return false;
 			}

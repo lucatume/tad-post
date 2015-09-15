@@ -84,9 +84,9 @@ will try to write one of the post columns (none exists called "color") then to t
 ## Direct access to terms and meta values
 Should direct access to terms or meta be neeeded then the following methods are available
 
-	public function set_terms( $terms, $taxonomy, $append = false );
+	public function set_terms( $terms, $taxonomy );
 	public function get_terms( $taxonomy, $default = array() );
-	public function set_meta( $key, $value, $append = true );
+	public function set_meta( $key, $value );
 	public function get_meta( $key, $single );
 	
 ## Sync
